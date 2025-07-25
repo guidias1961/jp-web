@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Matrix João Pedro</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: black;
+      overflow: hidden;
+      height: 100%;
+      font-family: 'Courier New', monospace;
+      touch-action: none;
+    }
+
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 0;
+    }
+
+    .overlay-container {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      gap: 30px;
+      flex-wrap: wrap;
+      text-align: center;
+    }
+
+    .name-box {
+      background-color: rgba(0, 0, 0, 0.7);
+      border: 2px solid #00ff00;
+      padding: 20px 30px;
+    }
+
+    .name-text {
+      color: #00ff00;
+      font-size: 6vw;
+      font-weight: bold;
+      letter-spacing: 2px;
+      animation: blinkText 2.5s ease-in-out infinite;
+    }
+
+    @keyframes blinkText {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .top-image {
+      position: absolute;
+      top: 10px;
+      width: 10vw;
+      min-width: 60px;
+      max-width: 100px;
+      height: auto;
+      transition: transform 2s ease, opacity 1s ease;
+      z-index: 2;
+      pointer-events: auto;
+    }
+
+    .falling {
+      transform: translateY(100vh) rotate(20deg);
+      opacity: 0;
+    }
+
+    #custom-cursor {
+      position: fixed;
+      width: 48px;
+      height: 48px;
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%, -50%);
+      transition: transform 0.1s linear;
+      display: block;
+    }
+
+    .rotating {
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: translate(-50%, -50%) rotate(0deg); }
+      100% { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+
+    @media (hover: none) and (pointer: coarse) {
+      html, body {
+        cursor: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="matrixCanvas"></canvas>
+
+  <div class="overlay-container">
+    <div class="name-box">
+      <div class="name-text">JOÃO PEDRO RAYE DIAS</div>
+    </div>
+  </div>
+
+  <img id="custom-cursor" src="mouse.png" alt="cursor">
+
+  <script>
+    // Matrix background
+    const canvas = document.getElementById('matrixCanvas');
+    const ctx = canvas.getContext('2d');
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    const name = "JOAO PEDRO RAYE DIAS";
+    const letters = name.split('');
+    const fontSize = 26;
+    const columns = Math.floor(window.innerWidth / fontSize);
+    const drops = Array(columns).fill(1);
+
+    function drawMatrix() {
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = '#00FF00';
+      ctx.font = fontSize + 'px monospace';
+
+      for (let i = 0; i < drops.length; i++) {
+        const text = letters[Math.floor(Math.random() * letters.length)];
+        const x = i * fontSize;
+        const y = drops[i] * fontSize;
+
+        ctx.fillText(text, x, y);
+
+        if (y > canvas.height && Math.random() > 0.975) {
+          drops[i] = 0;
+        }
+
+        drops[i]++;
+      }
+    }
+
+    setInterval(drawMatrix, 50);
+
+    // Top images
+    const imageCount = 7;
+    const spacing = window.innerWidth / (imageCount + 1);
+    const topOffset = 10;
+
+    for (let i = 1; i <= imageCount; i++) {
+      const img = document.createElement('img');
+      img.src = `${i}.png`;
+      img.className = 'top-image';
+      img.style.left = `${spacing * i - 45}px`;
+      img.style.top = `${topOffset}px`;
+
+      img.addEventListener('mouseenter', () => {
+        img.classList.add('falling');
+        setTimeout(() => {
+          img.classList.remove('falling');
+        }, 4000);
+      });
+
+      document.body.appendChild(img);
+    }
+
+    // Cursor customizado
+    const cursor = document.getElementById('custom-cursor');
+
+    function moveCursor(x, y) {
+      cursor.style.left = `${x}px`;
+      cursor.style.top = `${y}px`;
+    }
+
+    document.addEventListener('mousemove', e => moveCursor(e.clientX, e.clientY));
+    document.addEventListener('touchmove', e => {
+      if (e.touches.length > 0) {
+        moveCursor(e.touches[0].clientX, e.touches[0].clientY);
+      }
+    }, { passive: false });
+
+    const interactives = document.querySelectorAll('img, a, button');
+
+    interactives.forEach(el => {
+      el.addEventListener('mouseenter', () => {
+        cursor.classList.add('rotating');
+      });
+      el.addEventListener('mouseleave', () => {
+        cursor.classList.remove('rotating');
+      });
+      el.addEventListener('touchstart', () => {
+        cursor.classList.add('rotating');
+      });
+      el.addEventListener('touchend', () => {
+        cursor.classList.remove('rotating');
+      });
+    });
+  </script>
+</body>
+</html>
